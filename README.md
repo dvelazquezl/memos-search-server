@@ -8,7 +8,7 @@
 * Execute this **sudo ./install_solr_service.sh "../../solr-9.6.1.tgz"** in Terminal. (where "../../solr-9.6.1.tgz" is the path to our Zip file)
 * Now Solr should be installed as a service in your system.
 
-# 2. Solr Configuracion**
+# 2. Solr Configuracion
 * Open Terminal and execute **sudo -su solr /opt/solr-9.6.1/bin/solr create -c "production"**.
 * Copy the **sunspot** folder from this repository to **var\solr\data\configsets** (if the **configsets** folder does not exit, create it).
 * Open the **core.properties** file located at **var\solr\data\production** and add the following line: **configSet=sunspot**.
