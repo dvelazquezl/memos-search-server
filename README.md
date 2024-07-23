@@ -15,4 +15,5 @@
 * Execute **sudo nano /var/solr/data/production/core.properties** then add the following line at the end: **configSet=sunspot**.
 * Restart the solr service from terminal with: **sudo service solr restart**.
 
-# For more information visit -> https://solr.apache.org/guide/solr/latest/getting-started/introduction.html
+## More Information
+https://solr.apache.org/guide/solr/latest/getting-started/introduction.html
