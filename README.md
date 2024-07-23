@@ -1,4 +1,4 @@
-# Solr Configuracion and Setup
+# Solr Configuracion and Setup for Ubuntu
 
 # 1. Solr Setup
 * Install **OpenJDK 17** (recommended by Apache to run Solr) with **sudo apt install openjdk-17-jdk**.
