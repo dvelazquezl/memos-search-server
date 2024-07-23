@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!--  
+ This is the Solr schema file. This file should be named "schema.xml" and
+ should be in the conf directory under the solr home
+ (i.e. ./solr/conf/schema.xml by default) 
+ or located where the classloader for the Solr webapp can find it.
+
+ This example schema is the recommended starting point for users.
+ It should be kept correct and concise, usable out-of-the-box.
+
+ For more information, on how to customize this file, please see
+ http://wiki.apache.org/solr/SchemaXml
+
+ PERFORMANCE NOTE: this schema includes many optional features and should not
+ be used for benchmarking.  To improve performance one could
+  - set stored="false" for all fields possible (esp large fields) when you
+    only need to search on the field but don't need to return the original
+    value.
+  - set indexed="false" if you don't need to search on the field, but only
+    return the field as a result of searching on other indexed fields.
+  - remove all unneeded copyField statements
+  - for best index size and searching performance, set "index" to false
+    for all general text fields, use copyField to copy them to the
+    catchall "text" field, and use that for searching.
+  - For maximum indexing performance, use the StreamingUpdateSolrServer
+    java client.
+  - Remember to run the JVM in server mode, and use a higher logging level
+    that avoids logging every request
+-->
+<schema name="sunspot" version="1.6">
+    <types>
+        <!-- 
+        field type definitions. The "name" attribute is
+        just a label to be used by field definitions.  The "class"
+        attribute and any other attributes determine the real
+        behavior of the fieldType.
+        Class names starting with "solr" refer to java classes in the
+        org.apache.solr.analysis package.
+        -->
+
+        <!-- *** This field is used by Sunspot! *** -->
+        <field name="id" stored="true" type="string" multiValued="false" indexed="true" />
+        <!-- 
+        docValues are enabled by default for long type so we don't need to index the version field  
+        -->
+        <field name="_version_" type="plong" indexed="false" stored="false" />
+
+        <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true" />
+        <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true"
+            docValues="true" />
+
+        <!--
+        Numeric field types that index values using KD-trees.
+        Point fields don't support FieldCache, so they must have docValues="true" if needed for sorting,
+        faceting, functions, etc.
+        -->
+        <fieldType name="pint" class="solr.IntPointField" docValues="true" />
+        <fieldType name="plong" class="solr.LongPointField" docValues="true" />
+
+        <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true" />
+        <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true" />
+
+        <!-- KD-tree versions of date fields -->
+        <fieldType name="pdate" class="solr.DatePointField" docValues="true" />
+        <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true" />
+
+        <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <!-- <tokenizer class="solr.WhitespaceTokenizerFactory" /> -->
+                 <tokenizer class="solr.StandardTokenizerFactory" />
+                <filter class="solr.StopFilterFactory" ignoreCase="true"
+                    words="lang/stopwords_es.txt" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.SnowballPorterFilterFactory" language="Spanish"
+                    protected="lang/protwords_es.txt" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+                <filter class="solr.NGramFilterFactory" minGramSize="2" maxGramSize="25"/>
+            </analyzer>
+            <analyzer type="query">
+                <!-- <tokenizer class="solr.WhitespaceTokenizerFactory" /> -->
+                <tokenizer class="solr.StandardTokenizerFactory" />
+                <filter class="solr.StopFilterFactory" ignoreCase="true"
+                    words="lang/stopwords_es.txt" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.SnowballPorterFilterFactory" language="Spanish"
+                    protected="lang/protwords_es.txt" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+            </analyzer>
+        
+        </fieldType>
+        <!-- Special field type for spell correction. Be careful about
+         adding filters here, as they apply *before* your values go in
+         the spellcheck. For example, the lowercase filter here means
+         all spelling suggestions will be lower case (without it,
+         though, you'd have duplicate suggestions for lower and proper
+         cased words). 
+         -->
+        <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" omitNorms="true" />
+    </types>
+    <fields>
+        <!-- Valid attributes for fields:
+        name: mandatory - the name for the field
+        type: mandatory - the name of a previously defined type from the
+        <types> section
+        indexed: true if this field should be indexed (searchable or sortable)
+        stored: true if this field should be retrievable
+        compressed: [false] if this field should be stored using gzip compression
+        (this will only apply if the field type is compressable; among
+        the standard field types, only TextField and StrField are)
+        multiValued: true if this field may contain multiple values per document
+        omitNorms: (expert) set to true to omit the norms associated with
+        this field (this disables length normalization and index-time
+        boosting for the field, and saves some memory).  Only full-text
+        fields or fields that need an index-time boost need norms.
+        termVectors: [false] set to true to store the term vector for a
+        given field.
+        When using MoreLikeThis, fields used for similarity should be
+        stored for best performance.
+        termPositions: Store position information with the term vector.
+        This will increase storage costs.
+        termOffsets: Store offset information with the term vector. This
+        will increase storage costs.
+        default: a value that should be used if no value is specified
+        when adding a document.
+        -->
+
+        <!-- *** This field is used by Sunspot! *** -->
+        <field name="id" stored="true" type="string" multiValued="false" indexed="true" />
+        <!-- *** This field is used by Sunspot! *** -->
+        <field name="type" stored="false" type="string" multiValued="true" indexed="true" />
+        <!-- *** This field is used by Sunspot! *** -->
+        <field name="class_name" stored="false" type="string" multiValued="false" indexed="true" />
+        <!-- *** This field is used by Sunspot! *** -->
+        <field name="text" stored="false" type="string" multiValued="true" indexed="true" />
+
+
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_s" stored="false" type="string" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_sm" stored="false" type="string" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_ss" stored="true" type="string" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_sms" stored="true" type="string" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_i" stored="false" type="pint" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_im" stored="false" type="pint" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_is" stored="true" type="pint" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_ims" stored="true" type="pint" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_it" stored="false" type="pint" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_itm" stored="false" type="pint" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_its" stored="true" type="pint" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_itms" stored="true" type="pint" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_l" stored="false" type="plong" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_lm" stored="false" type="plong" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_ls" stored="true" type="plong" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_lms" stored="true" type="plong" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_d" stored="false" type="pdate" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dm" stored="false" type="pdate" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_ds" stored="true" type="pdate" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dms" stored="true" type="pdate" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dt" stored="false" type="pdate" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dtm" stored="false" type="pdate" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dts" stored="true" type="pdate" multiValued="false" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_dtms" stored="true" type="pdate" multiValued="true" indexed="true" />
+
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_text" stored="false" type="text" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_texts" stored="true" type="text" multiValued="true" indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_textv" stored="false" termVectors="true" type="text"
+            multiValued="true"
+            indexed="true" />
+        <!-- *** This dynamicField is used by Sunspot! *** -->
+        <dynamicField name="*_textsv" stored="true" termVectors="true" type="text"
+            multiValued="true"
+            indexed="true" />
+
+        <field name="textSpell" stored="false" type="textSpell" multiValued="true" indexed="true" />
+
+        <!-- required by Solr 5 -->
+        <field name="_version_" type="plong" indexed="true" stored="true" multiValued="false" />
+        <uniqueKey>id</uniqueKey>
+    </fields>
+</schema>
