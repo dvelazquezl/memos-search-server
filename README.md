@@ -1,6 +1,6 @@
-# Solr Configuracion and Setup for Ubuntu
+# Solr installation and configuration for Ubuntu
 
-# 1. Solr Setup
+# 1. Installation
 * Install **OpenJDK 17** (recommended by Apache to run Solr) with **sudo apt install openjdk-17-jdk**.
 * Download **Apache Solr 9.6.1** (version used and tested in the project) from the official page -> https://solr.apache.org/downloads.html.
 * Unzip the file to a safe folder with **tar xzf solr-9.6.1.tgz**.
@@ -8,7 +8,7 @@
 * Execute this **sudo ./install_solr_service.sh "../../solr-9.6.1.tgz"** in Terminal. (where "../../solr-9.6.1.tgz" is the path to your Zip file)
 * Now Solr should be installed as a service in your system.
 
-# 2. Solr Configuracion
+# 2. Configuration
 * Open Terminal and execute **sudo -su solr /opt/solr/bin/solr create -c production**.
 * Create the **configsets** folder with **sudo mkdir /var/solr/data/configsets**.
 * Copy the **sunspot** folder from this repository with **sudo cp -r path-to-repo/sunspot /var/solr/data/configsets**. (edit path-to-repo with your current path)
