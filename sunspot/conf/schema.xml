@@ -76,7 +76,6 @@
 
         <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
             <analyzer type="index">
-                <!-- <tokenizer class="solr.WhitespaceTokenizerFactory" /> -->
                  <tokenizer class="solr.StandardTokenizerFactory" />
                 <filter class="solr.StopFilterFactory" ignoreCase="true"
                     words="lang/stopwords_es.txt" />
@@ -87,7 +86,6 @@
                 <filter class="solr.NGramFilterFactory" minGramSize="4" maxGramSize="25"/>
             </analyzer>
             <analyzer type="query">
-                <!-- <tokenizer class="solr.WhitespaceTokenizerFactory" /> -->
                 <tokenizer class="solr.StandardTokenizerFactory" />
                 <filter class="solr.StopFilterFactory" ignoreCase="true"
                     words="lang/stopwords_es.txt" />
