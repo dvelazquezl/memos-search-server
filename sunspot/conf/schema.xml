@@ -91,7 +91,7 @@
                 <filter class="solr.SnowballPorterFilterFactory" language="Spanish"
                     protected="lang/protwords_es.txt" />
                 <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-                <filter class="solr.NGramFilterFactory" minGramSize="2" maxGramSize="25"/>
+                <filter class="solr.NGramFilterFactory" minGramSize="4" maxGramSize="25"/>
             </analyzer>
             <analyzer type="query">
                 <!-- <tokenizer class="solr.WhitespaceTokenizerFactory" /> -->
@@ -102,8 +102,8 @@
                 <filter class="solr.SnowballPorterFilterFactory" language="Spanish"
                     protected="lang/protwords_es.txt" />
                 <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+                <filter class="solr.NGramFilterFactory" minGramSize="4" maxGramSize="25"/>
             </analyzer>
-        
         </fieldType>
         <!-- Special field type for spell correction. Be careful about
          adding filters here, as they apply *before* your values go in
